@@ -1,13 +1,17 @@
-const React = require('react');
-const process = require('./process');
+'use strict';
+
+var React = require('react');
+var process = require('./process');
 
 /**
  * React component to render maths using mathjax
  * @type {ReactClass}
  */
-const MathJaxNode = React.createClass({
+var MathJaxNode = React.createClass({
+    displayName: 'MathJaxNode',
+
     propTypes: {
-        inline:   React.PropTypes.bool,
+        inline: React.PropTypes.bool,
         children: React.PropTypes.node.isRequired,
         onRender: React.PropTypes.func
     },
@@ -16,105 +20,113 @@ const MathJaxNode = React.createClass({
         MathJax: React.PropTypes.object
     },
 
-    getDefaultProps() {
+    getDefaultProps: function getDefaultProps() {
         return {
-            inline:   false,
-            onRender: () => {}
+            inline: false,
+            onRender: function onRender() {}
         };
     },
+
 
     /**
      * Render the math once the node is mounted
      */
-    componentDidMount() {
-        this.typeset();
+    componentDidMount: function componentDidMount() {
+        this.typeset(true);
     },
+
 
     /**
      * Update the jax, force update if the display mode changed
      */
-    componentDidUpdate(prevProps) {
-        const forceUpdate = prevProps.inline != this.props.inline;
-        this.typeset(forceUpdate);
+    componentDidUpdate: function componentDidUpdate(prevProps) {
+        var forceUpdate = prevProps.inline != this.props.inline;
+        this.typeset(true);
     },
+
 
     /**
      * Prevent update when the tex has not changed
      */
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
-        return (
-            nextProps.children != this.props.children
-            || nextProps.inline != this.props.inline
-            || nextContext.MathJax != this.context.MathJax
-        );
+    shouldComponentUpdate: function shouldComponentUpdate(nextProps, nextState, nextContext) {
+        return nextProps.children != this.props.children || nextProps.inline != this.props.inline || nextContext.MathJax != this.context.MathJax;
     },
+
 
     /**
      * Clear the math when unmounting the node
      */
-    componentWillUnmount() {
+    componentWillUnmount: function componentWillUnmount() {
         this.clear();
     },
+
 
     /**
      * Clear the jax
      */
-    clear() {
-        const { MathJax } = this.context;
+    clear: function clear() {
+        var MathJax = this.context.MathJax;
+
 
         if (!this.script || !MathJax) {
             return;
         }
 
-        const jax = MathJax.Hub.getJaxFor(this.script);
+        var jax = MathJax.Hub.getJaxFor(this.script);
         if (jax) {
             jax.Remove();
         }
     },
 
+
     /**
      * Update math in the node.
      * @param {Boolean} forceUpdate
      */
-    typeset(forceUpdate) {
-        const { MathJax } = this.context;
-        const { children, onRender } = this.props;
+    typeset: function typeset(forceUpdate) {
+        var _this = this;
+
+        var MathJax = this.context.MathJax;
+        var _props = this.props,
+            children = _props.children,
+            onRender = _props.onRender;
+
 
         if (!MathJax) {
             return;
         }
 
-        const text = children;
+        var text = children;
 
         if (forceUpdate) {
             this.clear();
         }
 
         if (!forceUpdate && this.script) {
-            MathJax.Hub.Queue(() => {
-                const jax = MathJax.Hub.getJaxFor(this.script);
-
-                if (jax) jax.Text(text, onRender);
-                else {
-                    const script = this.setScriptText(text);
+            MathJax.Hub.Queue(function () {
+                var jax = MathJax.Hub.getJaxFor(_this.script);
+                if (jax) {
+									jax.Text(text, onRender)
+								} else {
+                    var script = _this.setScriptText(text);
                     process(MathJax, script, onRender);
                 }
             });
-
-
         } else {
-            const script = this.setScriptText(text);
+            var script = this.setScriptText(text);
             process(MathJax, script, onRender);
         }
     },
+
 
     /**
      * Create a script
      * @param  {String} text
      * @return {DOMNode} script
      */
-    setScriptText(text) {
-        const { inline } = this.props;
+    setScriptText: function setScriptText(text) {
+        var inline = this.props.inline;
+
 
         if (!this.script) {
             this.script = document.createElement('script');
@@ -131,9 +143,8 @@ const MathJaxNode = React.createClass({
 
         return this.script;
     },
-
-    render() {
-        return <span ref="node" />;
+    render: function render() {
+        return React.createElement('span', { ref: 'node' });
     }
 });
 
